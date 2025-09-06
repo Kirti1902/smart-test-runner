@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const { program } = require("commander");
 const { execSync } = require("child_process");
 
@@ -9,20 +10,28 @@ program
 
     let changedFiles = [];
     try {
+      // try diff with previous commit
       changedFiles = execSync("git diff --name-only HEAD~1")
         .toString()
         .split("\n")
         .filter(Boolean);
     } catch (err) {
-      // fallback: just diff against HEAD (first commit case)
-      changedFiles = execSync("git diff --name-only HEAD")
-        .toString()
-        .split("\n")
-        .filter(Boolean);
+      // fallback: first commit case (no HEAD~1)
+      try {
+        changedFiles = execSync(
+          "git diff --name-only $(git hash-object -t tree /dev/null)"
+        )
+          .toString()
+          .split("\n")
+          .filter(Boolean);
+      } catch (e) {
+        console.log("⚠️ Could not detect changes.");
+      }
     }
 
     console.log("Changed files:", changedFiles);
 
+    // Simple mapping: if "math.js" changes → run "math.test.js"
     const testsToRun = [];
     if (changedFiles.includes("math.js")) {
       testsToRun.push("math.test.js");
