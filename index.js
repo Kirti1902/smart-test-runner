@@ -3,92 +3,125 @@
 const { execSync } = require("child_process");
 const { Command } = require("commander");
 const fs = require("fs");
+const path = require("path");
 
 const program = new Command();
 
-program
-  .name("impactrun")
-  .description("Run only impacted tests based on git changes")
-  .version("0.1.0");
+// ✅ Default config
+const defaultConfig = {
+  testDirectories: ["tests", "__tests__"],
+  testFileSuffixes: [".test.js", ".spec.js"],
+  defaultRunner: "jest",
+};
 
+// ✅ Load impactrun.config.json if it exists
+function loadConfig() {
+  const configPath = path.resolve(process.cwd(), "impactrun.config.json");
+
+  if (fs.existsSync(configPath)) {
+    try {
+      const userConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+      return { ...defaultConfig, ...userConfig };
+    } catch (err) {
+      console.error("❌ Failed to parse impactrun.config.json:", err.message);
+      return defaultConfig;
+    }
+  }
+
+  return defaultConfig;
+}
+
+const config = loadConfig();
+console.log("⚙️  Using config:", config);
+
+// ✅ Helper: find impacted test files by filename
+function findTestFiles(changedFiles) {
+  const impactedTests = [];
+
+  for (const file of changedFiles) {
+    const baseName = path.basename(file, path.extname(file));
+
+    for (const dir of config.testDirectories) {
+      for (const suffix of config.testFileSuffixes) {
+        const testFile = path.join(dir, `${baseName}${suffix}`);
+        if (fs.existsSync(testFile)) {
+          impactedTests.push(testFile);
+        }
+      }
+    }
+  }
+
+  return impactedTests;
+}
+
+// ✅ Helper: find impacted tests using coverage
+function getImpactedTestsByCoverage(changedFiles) {
+  const coveragePath = path.resolve(process.cwd(), "coverage/coverage-final.json");
+  if (!fs.existsSync(coveragePath)) {
+    return [];
+  }
+
+  const coverage = JSON.parse(fs.readFileSync(coveragePath, "utf-8"));
+  const impactedTests = new Set();
+
+  for (const testFile in coverage) {
+    const coveredFiles = Object.keys(coverage[testFile].s);
+    for (const changed of changedFiles) {
+      if (coveredFiles.includes(changed)) {
+        impactedTests.add(testFile);
+      }
+    }
+  }
+
+  return Array.from(impactedTests);
+}
+
+// ✅ Command: run tests
 program
   .command("run")
-  .description("Run impacted tests")
   .option("--all", "Run all tests")
-  .option("--changed", "Run only tests for changed files")
+  .option("--changed", "Run only tests impacted by changed files")
   .action((options) => {
     console.log("🔍 Detecting changes...");
 
-    let impactedTests = [];
-
-    // Critical files → always run all tests
-    const criticalFiles = ["package.json", "package-lock.json", "jest.config.js"];
-    let changedFiles = [];
-
-    try {
-      const output = execSync("git diff --name-only HEAD~1", { encoding: "utf-8" });
-      changedFiles = output.split("\n").filter((f) => f.trim() !== "");
-    } catch (err) {
-      console.error("⚠️ No previous commit found, running all tests.");
-      options.all = true;
-    }
-
     if (options.all) {
       console.log("⚡ Running ALL tests (forced by --all)");
-      execSync("npx jest", { stdio: "inherit" });
+      execSync(`${config.defaultRunner}`, { stdio: "inherit" });
       return;
     }
 
-    if (!options.changed && changedFiles.length === 0) {
-      console.log("✅ No changes detected, running all tests by default.");
-      execSync("npx jest", { stdio: "inherit" });
-      return;
-    }
-
-    console.log("Changed files:", changedFiles);
-
-    // Check if critical files were modified
-    if (changedFiles.some((file) => criticalFiles.includes(file))) {
-      console.log("⚡ Critical file changed → running ALL tests.");
-      execSync("npx jest", { stdio: "inherit" });
-      return;
-    }
-
-    // Manual mapping (for special cases)
-    const testMapping = {
-      "math.js": "math.test.js",
-    };
-
-    // Auto-mapping: xyz.js → xyz.test.js (check multiple dirs)
-    changedFiles.forEach((file) => {
-      if (testMapping[file]) {
-        impactedTests.push(testMapping[file]);
-      } else if (file.endsWith(".js") && !file.endsWith(".test.js")) {
-        const baseName = file.replace(".js", ".test.js");
-        const possiblePaths = [
-          baseName,                    // same folder
-          `tests/${baseName}`,         // tests folder
-          `__tests__/${baseName}`,     // __tests__ folder
-          `src/${baseName}`            // src folder
-        ];
-
-        possiblePaths.forEach((path) => {
-          if (fs.existsSync(path)) {
-            impactedTests.push(path);
-          }
-        });
+    if (options.changed) {
+      let changedFiles;
+      try {
+        changedFiles = execSync("git diff --name-only HEAD~1", { encoding: "utf-8" })
+          .split("\n")
+          .filter(Boolean);
+      } catch {
+        changedFiles = [];
       }
-    });
 
-    impactedTests = [...new Set(impactedTests)]; // dedupe
+      console.log("Changed files:", changedFiles);
 
-    if (impactedTests.length > 0) {
+      // Use coverage-based detection if coverage exists
+      let impactedTests = [];
+      const coveragePath = path.resolve(process.cwd(), "coverage/coverage-final.json");
+      if (fs.existsSync(coveragePath)) {
+        impactedTests = getImpactedTestsByCoverage(changedFiles);
+      } else {
+        impactedTests = findTestFiles(changedFiles);
+      }
+
+      if (impactedTests.length === 0) {
+        console.log("✅ No impacted tests found. Skipping...");
+        return;
+      }
+
       console.log("Running impacted tests:", impactedTests.join(", "));
-      execSync(`npx jest ${impactedTests.join(" ")}`, { stdio: "inherit" });
-    } else {
-      console.log("⚠️ No impacted tests found. Running ALL tests as fallback...");
-      execSync("npx jest", { stdio: "inherit" });
+      execSync(`${config.defaultRunner} ${impactedTests.join(" ")}`, { stdio: "inherit" });
+      return;
     }
+
+    console.log("❌ No option provided. Use --all or --changed.");
   });
 
 program.parse(process.argv);
