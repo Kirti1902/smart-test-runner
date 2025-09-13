@@ -6,13 +6,13 @@ Think of it as **git-aware, coverage-aware test execution** – built for speed 
 ---
 
 ## ✨ Features
-- 🔍 Detects changed files with `git diff`
-- 🧪 Maps code changes → impacted test files using:
-  - Filename-based matching  
-  - **Coverage-based detection** (from Jest coverage reports)
-- ⚡ Runs only the required tests (skipping the rest)
-- 📊 Generates clear reports (pass/fail, skipped tests, time saved)
-- 🔗 Easy integration with CI/CD (GitHub Actions, GitLab, Jenkins)
+- 🔍 Detects changed files with `git diff`  
+- 🎯 Maps code changes → impacted test files  
+- ⚡ Runs only the required tests (skipping the rest)  
+- 🚀 Supports running tests in **parallel**  
+- 👀 Optional **watch mode** to automatically run impacted tests on file changes  
+- 📊 Generates coverage reports and test summaries  
+- 🔗 Easy integration with CI/CD (GitHub Actions, GitLab, Jenkins)  
 - 🧩 Framework-agnostic (works with Jest, Mocha, Pytest, etc.)
 
 ---
@@ -23,123 +23,121 @@ Think of it as **git-aware, coverage-aware test execution** – built for speed 
 ```bash
 git clone https://github.com/<your-username>/impactrun.git
 cd impactrun
-2. Install Dependencies
-bash
-Copy code
+````
+
+### 2. Install Dependencies
+
+```bash
 npm install
-3. Run Coverage (for coverage-based impacted test selection)
-bash
-Copy code
-npm run test:coverage
-Generates coverage/coverage-final.json used by ImpactRun to detect impacted tests.
+```
 
-4. Run the CLI
-Run only impacted tests
-bash
-Copy code
+### 3. Run the CLI
+
+Run **only impacted tests**:
+
+```bash
 node index.js run --changed
-Example:
+```
 
-bash
-Copy code
-🔍 Detecting changes...
-Changed files: [ 'math.js' ]
-Running impacted tests: tests/math.test.js, tests/math.spec.js
- PASS  tests/math.spec.js
- PASS  tests/math.test.js
-Run all tests (ignore changed detection)
-bash
-Copy code
+Run **all tests**:
+
+```bash
 node index.js run --all
-📂 Project Structure
-text
-Copy code
-impactrun/
- ├── src/                     # Core runner logic
- ├── tests/                   # Example tests
- ├── index.js                 # CLI entry point
- ├── impactrun.config.json    # Optional configuration
- ├── package.json
- ├── package-lock.json
- └── README.md
-⚙️ Configuration (impactrun.config.json)
-json
-Copy code
+```
+
+Run **impacted tests in parallel**:
+
+```bash
+node index.js run --changed --parallel
+```
+
+Run **watch mode** to automatically detect changes:
+
+```bash
+node index.js run --changed --watch
+```
+
+---
+
+## 🧪 Example
+
+Let’s say you modified `math.js`.
+ImpactRun detects the change and runs only `math.test.js` and `math.spec.js`:
+
+```text
+🔍 Detecting changes...
+Changed files: [ 'math.js', 'index.js' ]
+Running impacted tests: tests/math.test.js, tests/math.spec.js
+⚡ Running 2 tests in parallel...
+PASS  tests/math.test.js
+PASS  tests/math.spec.js
+✅ Passed: tests/math.test.js
+✅ Passed: tests/math.spec.js
+⏭️ Skipped: 0 tests
+✅ Estimated time saved: 50%
+```
+
+---
+
+## ⚙️ Configuration
+
+You can customize ImpactRun by creating an `impactrun.config.json` in the root:
+
+```json
 {
-  "testDirectories": ["tests", "__tests__"],
+  "testDirectories": ["tests"],
+  "sourceDirectories": ["."],
   "testFileSuffixes": [".test.js", ".spec.js", ".unit.js"],
   "defaultRunner": "jest"
 }
-testDirectories → directories to search for test files
+```
 
-testFileSuffixes → allowed suffixes for test files
+* `testDirectories`: Folders where your test files are located
+* `sourceDirectories`: Folders where your source code is located
+* `testFileSuffixes`: Test file patterns to detect
+* `defaultRunner`: Test runner CLI command (`jest`, `mocha`, etc.)
 
-defaultRunner → your test runner (Jest, Mocha, etc.)
+---
 
-🛠️ Roadmap
-Auto-discover test mappings (no manual config)
+## 📂 Project Structure
 
-Coverage-based test selection (done)
+```text
+impactrun/
+ ├── tests/                # Example tests
+ ├── coverage/             # Coverage reports
+ ├── index.js              # CLI entry point
+ ├── impactrun.config.json # Config file
+ ├── package.json
+ └── README.md
+```
 
-Parallel execution of impacted tests
+---
 
-HTML/Markdown test reports
+## 🛠️ Roadmap
 
-GitHub Actions integration example
+* Auto-discover test mappings (no manual config)
+* Coverage-based test selection
+* HTML/Markdown test reports
+* GitHub Actions / CI integration examples
 
-🤝 Contributing
+---
+
+## 🤝 Contributing
+
 Contributions, issues, and feature requests are welcome!
 
-⚡ GitHub Actions Integration
-
-Workflow file: .github/workflows/impactrun.yml
-
-name: ImpactRun Tests
-
-on:
-  pull_request:
-    branches: [ main ]
-  push:
-    branches: [ main ]
-
-jobs:
-  impactrun:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Generate coverage
-        run: npm run test:coverage
-
-      - name: Run ImpactRun
-        run: node index.js run --changed
-
-
-Automatically detects changed files in PRs/pushes
-
-Runs only the impacted tests using coverage data
-
-Saves CI time and resources
-
-
 ---
 
-This README now includes:
+## ✅ Summary of Implementations
 
-1. **Coverage-based instructions**  
-2. **CLI usage examples** (`--changed` and `--all`)  
-3. **Project structure & config**  
-4. **GitHub Actions workflow example**  
+* Git-aware test detection (`--changed`)
+* Run all tests (`--all`)
+* Parallel execution (`--parallel`)
+* Watch mode for automatic reruns (`--watch`)
+* Configurable via `impactrun.config.json`
+* Integrated coverage support (`jest --coverage`)
+* Outputs test summary with pass/fail and estimated time saved
+
+```
 
 ---
-
-If you want, the **next step** can be **adding parallel execution** for impacted tests to speed up CI even more.  

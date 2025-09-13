@@ -1,5 +1,6 @@
 {
-    "testDirectories": ["tests", "__tests__"],
-    "testFileSuffixes": [".test.js", ".spec.js", ".unit.js"],
-    "defaultRunner": "jest"
-  }
+  "testDirectories": ["tests"],
+  "sourceDirectories": ["."],
+  "testFileSuffixes": [".test.js", ".spec.js", ".unit.js"],
+  "defaultRunner": "jest"
+}

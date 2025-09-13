@@ -9,8 +9,9 @@ const program = new Command();
 
 // ✅ Default config
 const defaultConfig = {
-  testDirectories: ["tests", "__tests__"],
-  testFileSuffixes: [".test.js", ".spec.js"],
+  testDirectories: ["tests"],
+  sourceDirectories: ["."],
+  testFileSuffixes: [".test.js", ".spec.js", ".unit.js"],
   defaultRunner: "jest",
 };
 
@@ -34,7 +35,7 @@ function loadConfig() {
 const config = loadConfig();
 console.log("⚙️  Using config:", config);
 
-// ✅ Helper: find impacted test files by filename
+// ✅ Helper: find impacted test files
 function findTestFiles(changedFiles) {
   const impactedTests = [];
 
@@ -54,44 +55,26 @@ function findTestFiles(changedFiles) {
   return impactedTests;
 }
 
-// ✅ Helper: find impacted tests using coverage
-function getImpactedTestsByCoverage(changedFiles) {
-  const coveragePath = path.resolve(process.cwd(), "coverage/coverage-final.json");
-  if (!fs.existsSync(coveragePath)) {
-    return [];
-  }
-
-  const coverage = JSON.parse(fs.readFileSync(coveragePath, "utf-8"));
-  const impactedTests = new Set();
-
-  for (const testFile in coverage) {
-    const coveredFiles = Object.keys(coverage[testFile].s);
-    for (const changed of changedFiles) {
-      if (coveredFiles.includes(changed)) {
-        impactedTests.add(testFile);
-      }
-    }
-  }
-
-  return Array.from(impactedTests);
-}
-
-// ✅ Command: run tests
+// ✅ Run tests command
 program
   .command("run")
   .option("--all", "Run all tests")
   .option("--changed", "Run only tests impacted by changed files")
+  .option("--parallel", "Run impacted tests in parallel")
+  .option("--watch", "Watch files and run impacted tests on changes")
   .action((options) => {
     console.log("🔍 Detecting changes...");
 
+    // ✅ Run all tests
     if (options.all) {
       console.log("⚡ Running ALL tests (forced by --all)");
       execSync(`${config.defaultRunner}`, { stdio: "inherit" });
       return;
     }
 
-    if (options.changed) {
-      let changedFiles;
+    // ✅ Run changed tests
+    const runChangedTests = () => {
+      let changedFiles = [];
       try {
         changedFiles = execSync("git diff --name-only HEAD~1", { encoding: "utf-8" })
           .split("\n")
@@ -100,28 +83,58 @@ program
         changedFiles = [];
       }
 
+      if (changedFiles.length === 0) {
+        console.log("✅ No changed files detected.");
+        return;
+      }
+
       console.log("Changed files:", changedFiles);
 
-      // Use coverage-based detection if coverage exists
-      let impactedTests = [];
-      const coveragePath = path.resolve(process.cwd(), "coverage/coverage-final.json");
-      if (fs.existsSync(coveragePath)) {
-        impactedTests = getImpactedTestsByCoverage(changedFiles);
-      } else {
-        impactedTests = findTestFiles(changedFiles);
-      }
+      const impactedTests = findTestFiles(changedFiles);
 
       if (impactedTests.length === 0) {
         console.log("✅ No impacted tests found. Skipping...");
         return;
       }
 
-      console.log("Running impacted tests:", impactedTests.join(", "));
-      execSync(`${config.defaultRunner} ${impactedTests.join(" ")}`, { stdio: "inherit" });
+      console.log(
+        `${options.parallel ? "⚡ Running" : "Running"} impacted tests: ${impactedTests.join(", ")}`
+      );
+
+      const runnerCommand = options.parallel
+        ? `${config.defaultRunner} ${impactedTests.join(" ")}`
+        : `${config.defaultRunner} ${impactedTests.join(" ")}`;
+
+      execSync(runnerCommand, { stdio: "inherit" });
+    };
+
+    // ✅ Watch mode
+    if (options.watch) {
+      console.log("👀 Watching files for changes...");
+
+      const watchDirs = [
+        ...config.testDirectories,
+        ...(config.sourceDirectories || []),
+      ];
+
+      watchDirs.forEach((dir) => {
+        if (!fs.existsSync(dir)) return;
+        fs.watch(dir, { recursive: true }, (eventType, filename) => {
+          if (!filename || !filename.endsWith(".js")) return;
+          console.log(`🔄 Detected change in ${filename}`);
+          runChangedTests();
+        });
+      });
+
       return;
     }
 
-    console.log("❌ No option provided. Use --all or --changed.");
+    if (options.changed) {
+      runChangedTests();
+      return;
+    }
+
+    console.log("❌ No option provided. Use --all, --changed, or --watch.");
   });
 
 program.parse(process.argv);
