@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chokidar": "^3.6.0",
     "commander": "^14.0.0"
   },
   "devDependencies": {
@@ -30,6 +31,9 @@
           "includeSuiteFailure": true
         }
       ]
+    ],
+    "testMatch": [
+      "**/tests/**/*.(test|spec|unit).js"
     ]
   }
 }

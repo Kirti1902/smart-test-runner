@@ -4,6 +4,7 @@ const { execSync } = require("child_process");
 const { Command } = require("commander");
 const fs = require("fs");
 const path = require("path");
+const chokidar = require("chokidar");
 
 const program = new Command();
 
@@ -18,7 +19,6 @@ const defaultConfig = {
 // ✅ Load impactrun.config.json if it exists
 function loadConfig() {
   const configPath = path.resolve(process.cwd(), "impactrun.config.json");
-
   if (fs.existsSync(configPath)) {
     try {
       const userConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
@@ -28,20 +28,18 @@ function loadConfig() {
       return defaultConfig;
     }
   }
-
   return defaultConfig;
 }
 
 const config = loadConfig();
 console.log("⚙️  Using config:", config);
 
-// ✅ Helper: find impacted test files
+// ✅ Helper: find impacted test files based on changed files
 function findTestFiles(changedFiles) {
   const impactedTests = [];
 
   for (const file of changedFiles) {
     const baseName = path.basename(file, path.extname(file));
-
     for (const dir of config.testDirectories) {
       for (const suffix of config.testFileSuffixes) {
         const testFile = path.join(dir, `${baseName}${suffix}`);
@@ -55,82 +53,93 @@ function findTestFiles(changedFiles) {
   return impactedTests;
 }
 
-// ✅ Run tests command
+// ✅ Run tests for changed files
+function runChangedTests() {
+  let changedFiles;
+  try {
+    changedFiles = execSync("git diff --name-only HEAD~1", { encoding: "utf-8" })
+      .split("\n")
+      .filter(Boolean);
+  } catch {
+    changedFiles = [];
+  }
+
+  if (changedFiles.length === 0) {
+    console.log("✅ No changes detected.");
+    return;
+  }
+
+  console.log("🔍 Changed files:", changedFiles);
+
+  const impactedTests = findTestFiles(changedFiles);
+
+  if (impactedTests.length === 0) {
+    console.log("✅ No impacted tests found. Skipping...");
+    return;
+  }
+
+  console.log("🧪 Running impacted tests:", impactedTests.join(", "));
+  try {
+    execSync(`${config.defaultRunner} ${impactedTests.join(" ")}`, { stdio: "inherit" });
+  } catch (err) {
+    console.error("❌ Test execution failed:", err.message);
+  }
+}
+
+// ✅ Command: run
 program
   .command("run")
   .option("--all", "Run all tests")
   .option("--changed", "Run only tests impacted by changed files")
-  .option("--parallel", "Run impacted tests in parallel")
-  .option("--watch", "Watch files and run impacted tests on changes")
+  .option("--watch", "Watch for file changes and run impacted tests")
   .action((options) => {
-    console.log("🔍 Detecting changes...");
-
-    // ✅ Run all tests
     if (options.all) {
-      console.log("⚡ Running ALL tests (forced by --all)");
-      execSync(`${config.defaultRunner}`, { stdio: "inherit" });
+      console.log("⚡ Running ALL tests...");
+      try {
+        execSync(config.defaultRunner, { stdio: "inherit" });
+      } catch (err) {
+        console.error("❌ Test execution failed:", err.message);
+      }
       return;
     }
 
-    // ✅ Run changed tests
-    const runChangedTests = () => {
-      let changedFiles = [];
-      try {
-        changedFiles = execSync("git diff --name-only HEAD~1", { encoding: "utf-8" })
-          .split("\n")
-          .filter(Boolean);
-      } catch {
-        changedFiles = [];
-      }
-
-      if (changedFiles.length === 0) {
-        console.log("✅ No changed files detected.");
-        return;
-      }
-
-      console.log("Changed files:", changedFiles);
-
-      const impactedTests = findTestFiles(changedFiles);
-
-      if (impactedTests.length === 0) {
-        console.log("✅ No impacted tests found. Skipping...");
-        return;
-      }
-
-      console.log(
-        `${options.parallel ? "⚡ Running" : "Running"} impacted tests: ${impactedTests.join(", ")}`
-      );
-
-      const runnerCommand = options.parallel
-        ? `${config.defaultRunner} ${impactedTests.join(" ")}`
-        : `${config.defaultRunner} ${impactedTests.join(" ")}`;
-
-      execSync(runnerCommand, { stdio: "inherit" });
-    };
-
-    // ✅ Watch mode
-    if (options.watch) {
-      console.log("👀 Watching files for changes...");
-
-      const watchDirs = [
-        ...config.testDirectories,
-        ...(config.sourceDirectories || []),
-      ];
-
-      watchDirs.forEach((dir) => {
-        if (!fs.existsSync(dir)) return;
-        fs.watch(dir, { recursive: true }, (eventType, filename) => {
-          if (!filename || !filename.endsWith(".js")) return;
-          console.log(`🔄 Detected change in ${filename}`);
-          runChangedTests();
-        });
+    if (options.changed && options.watch) {
+      console.log("👀 Watching files for changes and running impacted tests...");
+      const watcher = chokidar.watch(config.sourceDirectories, {
+        ignored: /node_modules/,
+        persistent: true,
       });
 
+      watcher.on("change", (filePath) => {
+        console.log(`🔄 Detected change on ${filePath}`);
+        runChangedTests();
+      });
+
+      // Initial run
+      runChangedTests();
       return;
     }
 
     if (options.changed) {
       runChangedTests();
+      return;
+    }
+
+    if (options.watch) {
+      console.log("👀 Watching all source files for changes and running all tests...");
+      const watcher = chokidar.watch(config.sourceDirectories, {
+        ignored: /node_modules/,
+        persistent: true,
+      });
+
+      watcher.on("change", (filePath) => {
+        console.log(`🔄 Detected change on ${filePath}`);
+        try {
+          execSync(config.defaultRunner, { stdio: "inherit" });
+        } catch (err) {
+          console.error("❌ Test execution failed:", err.message);
+        }
+      });
       return;
     }
 

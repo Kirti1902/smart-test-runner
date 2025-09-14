@@ -6,14 +6,14 @@ Think of it as **git-aware, coverage-aware test execution** – built for speed 
 ---
 
 ## ✨ Features
-- 🔍 Detects changed files with `git diff`  
-- 🎯 Maps code changes → impacted test files  
-- ⚡ Runs only the required tests (skipping the rest)  
-- 🚀 Supports running tests in **parallel**  
-- 👀 Optional **watch mode** to automatically run impacted tests on file changes  
-- 📊 Generates coverage reports and test summaries  
-- 🔗 Easy integration with CI/CD (GitHub Actions, GitLab, Jenkins)  
+- 🔍 Detects changed files with `git diff`
+- 🎯 Maps code changes → impacted test files
+- ⚡ Runs only the required tests (skipping the rest)
+- ⏱️ Supports **parallel execution**
+- 👀 Supports **watch mode** for continuous testing
+- 📊 Generates clear reports (pass/fail, skipped tests, time saved)
 - 🧩 Framework-agnostic (works with Jest, Mocha, Pytest, etc.)
+- 🔗 Easy integration with CI/CD (GitHub Actions, GitLab, Jenkins)
 
 ---
 
@@ -33,69 +33,29 @@ npm install
 
 ### 3. Run the CLI
 
-Run **only impacted tests**:
-
 ```bash
+# Run impacted tests only
 node index.js run --changed
-```
 
-Run **all tests**:
-
-```bash
+# Run all tests
 node index.js run --all
 ```
 
-Run **impacted tests in parallel**:
+### 🧪 Example
 
-```bash
-node index.js run --changed --parallel
-```
-
-Run **watch mode** to automatically detect changes:
-
-```bash
-node index.js run --changed --watch
-```
-
----
-
-## 🧪 Example
-
-Let’s say you modified `math.js`.
-ImpactRun detects the change and runs only `math.test.js` and `math.spec.js`:
+Let’s say you modified `math.js`. ImpactRun detects the change and runs only `math.test.js`:
 
 ```text
 🔍 Detecting changes...
-Changed files: [ 'math.js', 'index.js' ]
-Running impacted tests: tests/math.test.js, tests/math.spec.js
-⚡ Running 2 tests in parallel...
-PASS  tests/math.test.js
-PASS  tests/math.spec.js
-✅ Passed: tests/math.test.js
-✅ Passed: tests/math.spec.js
-⏭️ Skipped: 0 tests
-✅ Estimated time saved: 50%
+Changed files: math.js
+Running impacted tests: math.test.js
+ PASS  math.test.js
+  ✓ adds numbers (5 ms)
+  ✓ subtracts numbers (3 ms)
+
+⏭️ Skipped: 120 tests
+✅ Time saved: 80%
 ```
-
----
-
-## ⚙️ Configuration
-
-You can customize ImpactRun by creating an `impactrun.config.json` in the root:
-
-```json
-{
-  "testDirectories": ["tests"],
-  "sourceDirectories": ["."],
-  "testFileSuffixes": [".test.js", ".spec.js", ".unit.js"],
-  "defaultRunner": "jest"
-}
-```
-
-* `testDirectories`: Folders where your test files are located
-* `sourceDirectories`: Folders where your source code is located
-* `testFileSuffixes`: Test file patterns to detect
-* `defaultRunner`: Test runner CLI command (`jest`, `mocha`, etc.)
 
 ---
 
@@ -103,12 +63,61 @@ You can customize ImpactRun by creating an `impactrun.config.json` in the root:
 
 ```text
 impactrun/
- ├── tests/                # Example tests
- ├── coverage/             # Coverage reports
- ├── index.js              # CLI entry point
- ├── impactrun.config.json # Config file
+ ├── src/              # Core runner logic
+ ├── tests/            # Example tests
+ ├── index.js          # CLI entry point
  ├── package.json
  └── README.md
+```
+
+---
+
+## ⚡ CLI Options Quick Reference
+
+| Command / Flag                        | Description                                                |
+| ------------------------------------- | ---------------------------------------------------------- |
+| `node index.js run --all`             | Run **all tests** regardless of changes.                   |
+| `node index.js run --changed`         | Run **only impacted tests** based on changed files.        |
+| `node index.js run --watch`           | **Watch all source files** and rerun all tests on changes. |
+| `node index.js run --changed --watch` | **Watch changed files** and rerun impacted tests only.     |
+| `--parallel`                          | Run tests **in parallel** to save execution time.          |
+| `--help`                              | Show CLI help with all available options.                  |
+
+**Example Usage**
+
+```bash
+# Run impacted tests and watch for changes
+node index.js run --changed --watch
+
+# Run all tests in parallel
+node index.js run --all --parallel
+```
+
+**Notes:**
+
+* Combine `--watch` with `--all` or `--changed` for continuous testing.
+* `--parallel` can be combined with `--all` or `--changed` for faster execution.
+
+---
+
+## 📊 Test Reporting
+
+* ImpactRun integrates with **Jest HTML Reporter**.
+* After running tests, open:
+
+```text
+reports/test-report.html
+```
+
+* Sample view:
+
+```
+ImpactRun Test Report
+--------------------
+✅ Passed: math.test.js
+✅ Passed: math.spec.js
+⏭️ Skipped: 0 tests
+Time saved: 60%
 ```
 
 ---
@@ -117,27 +126,21 @@ impactrun/
 
 * Auto-discover test mappings (no manual config)
 * Coverage-based test selection
+* Parallel execution of impacted tests
 * HTML/Markdown test reports
-* GitHub Actions / CI integration examples
+* GitHub Actions integration example
 
 ---
 
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
+Please follow standard GitHub flow: fork → branch → PR → review → merge.
 
 ---
 
-## ✅ Summary of Implementations
+## 📄 License
 
-* Git-aware test detection (`--changed`)
-* Run all tests (`--all`)
-* Parallel execution (`--parallel`)
-* Watch mode for automatic reruns (`--watch`)
-* Configurable via `impactrun.config.json`
-* Integrated coverage support (`jest --coverage`)
-* Outputs test summary with pass/fail and estimated time saved
+ISC
 
 ```
-
----

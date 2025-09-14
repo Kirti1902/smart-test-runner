@@ -1,25 +1,76 @@
-name: ImpactRun Tests
+name: ImpactRun CI with Coverage
 
 on:
-  pull_request:
-    branches: [ main ]
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  impactrun:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      # 1️⃣ Checkout the repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: npm install
 
-      - name: Run ImpactRun
-        run: node index.js run --changed
+      # 4️⃣ Run all tests first if coverage data missing
+      - name: Generate coverage if missing
+        run: |
+          if [ ! -f coverage/coverage-final.json ]; then
+            echo "Coverage data missing — running all tests to generate coverage"
+            npm run test:coverage
+          else
+            echo "Coverage data exists — skipping full test run"
+          fi
+        shell: bash
+
+      # 5️⃣ Detect changes and run impacted tests
+      - name: Run ImpactRun with coverage
+        run: |
+          echo "🔹 Running ImpactRun tests based on changes and coverage"
+          node index.js run --changed --parallel | tee test-output.log
+        shell: bash
+
+      # 6️⃣ Fail workflow if any tests failed
+      - name: Fail workflow if tests failed
+        if: failure()
+        run: |
+          echo "❌ Some tests failed. Check the logs above."
+          exit 1
+
+      # 7️⃣ Comment on PR if tests fail
+      - name: Comment on PR if tests fail
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let output = fs.readFileSync('test-output.log', 'utf-8');
+            const summary = output.split('\n').slice(-20).join('\n');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ ImpactRun Test Failure:\n\`\`\`\n${summary}\n\`\`\``
+            })
+
+      # 8️⃣ Upload HTML test report
+      - name: Upload HTML test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: impactrun-html-report
+          path: reports/test-report.html
