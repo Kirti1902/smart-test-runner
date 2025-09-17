@@ -1,146 +1,127 @@
-# ⚡ ImpactRun
+# ⚡ ImpactRun - Intelligent Test Runner
 
-> A **smart test runner** that saves time by running only the tests impacted by your latest code changes.  
-Think of it as **git-aware, coverage-aware test execution** – built for speed and scalability.
-
----
-
-## ✨ Features
-- 🔍 Detects changed files with `git diff`
-- 🎯 Maps code changes → impacted test files
-- ⚡ Runs only the required tests (skipping the rest)
-- ⏱️ Supports **parallel execution**
-- 👀 Supports **watch mode** for continuous testing
-- 📊 Generates clear reports (pass/fail, skipped tests, time saved)
-- 🧩 Framework-agnostic (works with Jest, Mocha, Pytest, etc.)
-- 🔗 Easy integration with CI/CD (GitHub Actions, GitLab, Jenkins)
+ImpactRun is a **smart test runner** built for Node.js projects that leverages **Git-based change detection** to run only impacted tests, improving efficiency during development. It supports full test execution, watching files for changes, and generates detailed test reports and coverage.
 
 ---
 
-## 🚀 Getting Started
+## Features
 
-### 1. Clone the Repo
+- Run **all tests** or **only impacted tests** after code changes.
+- **Watch mode** for continuous testing during development.
+- Generates **HTML test reports** and **code coverage reports**.
+- Works seamlessly with **Jest** as the default test runner.
+- Git-aware: detects changes based on commits.
+
+---
+
+## Project Structure
+
+ImpactRun/
+├─ src/ # Source code
+│ ├─ cli.js # CLI entry point
+│ ├─ runner.js # Test runner logic
+│ └─ config/
+│ └─ config.js # Configuration loader
+├─ tests/ # Test files
+│ ├─ math.test.js
+│ ├─ math.spec.js
+│ └─ operations.unit.js
+├─ coverage/ # Coverage reports
+├─ reports/ # HTML test reports
+├─ package.json
+├─ package-lock.json
+├─ impactrun.config.json # Project-specific config
+└─ README.md
+
+yaml
+Copy code
+
+---
+
+## Installation
+
+1. Clone the repository:
+
 ```bash
-git clone https://github.com/<your-username>/impactrun.git
-cd impactrun
-````
+git clone <repository-url>
+cd ImpactRun
+Install dependencies:
 
-### 2. Install Dependencies
-
-```bash
+bash
+Copy code
 npm install
-```
+CLI Usage
+All commands are run via the impactrun npm script:
 
-### 3. Run the CLI
+Command	Description
+npm run impactrun -- --all	Runs all tests in the project.
+npm run impactrun -- --changed	Runs only tests impacted by changed source files.
+npm run impactrun -- --watch	Watches all files and reruns all tests on changes.
+npm run impactrun -- --changed --watch	Watches changed files and runs only impacted tests.
 
-```bash
-# Run impacted tests only
-node index.js run --changed
-
+Example:
+bash
+Copy code
 # Run all tests
-node index.js run --all
-```
+npm run impactrun -- --all
 
-### 🧪 Example
+# Run only impacted tests
+npm run impactrun -- --changed
 
-Let’s say you modified `math.js`. ImpactRun detects the change and runs only `math.test.js`:
+# Watch all files and rerun tests
+npm run impactrun -- --watch
 
-```text
-🔍 Detecting changes...
-Changed files: math.js
-Running impacted tests: math.test.js
- PASS  math.test.js
-  ✓ adds numbers (5 ms)
-  ✓ subtracts numbers (3 ms)
+# Watch changed files and rerun impacted tests
+npm run impactrun -- --changed --watch
+Testing & Coverage
+Run all Jest tests:
 
-⏭️ Skipped: 120 tests
-✅ Time saved: 80%
-```
+bash
+Copy code
+npm test
+Generate code coverage:
 
----
+bash
+Copy code
+npm run test:coverage
+Generate HTML test report:
 
-## 📂 Project Structure
+bash
+Copy code
+npm run test:report
+Coverage reports are in coverage/.
 
-```text
-impactrun/
- ├── src/              # Core runner logic
- ├── tests/            # Example tests
- ├── index.js          # CLI entry point
- ├── package.json
- └── README.md
-```
+HTML reports are in reports/test-report.html.
 
----
+Configuration
+ImpactRun uses impactrun.config.json:
 
-## ⚡ CLI Options Quick Reference
+json
+Copy code
+{
+  "testDirectories": ["tests"],
+  "sourceDirectories": ["."],
+  "testFileSuffixes": [".test.js", ".spec.js", ".unit.js"],
+  "defaultRunner": "jest"
+}
+testDirectories: Directories containing test files.
 
-| Command / Flag                        | Description                                                |
-| ------------------------------------- | ---------------------------------------------------------- |
-| `node index.js run --all`             | Run **all tests** regardless of changes.                   |
-| `node index.js run --changed`         | Run **only impacted tests** based on changed files.        |
-| `node index.js run --watch`           | **Watch all source files** and rerun all tests on changes. |
-| `node index.js run --changed --watch` | **Watch changed files** and rerun impacted tests only.     |
-| `--parallel`                          | Run tests **in parallel** to save execution time.          |
-| `--help`                              | Show CLI help with all available options.                  |
+sourceDirectories: Directories containing source code.
 
-**Example Usage**
+testFileSuffixes: File suffixes for test detection.
 
-```bash
-# Run impacted tests and watch for changes
-node index.js run --changed --watch
+defaultRunner: Test runner to use (currently only jest supported).
 
-# Run all tests in parallel
-node index.js run --all --parallel
-```
+Contributing
+Fork the repository.
 
-**Notes:**
+Create a feature branch: git checkout -b feature/your-feature.
 
-* Combine `--watch` with `--all` or `--changed` for continuous testing.
-* `--parallel` can be combined with `--all` or `--changed` for faster execution.
+Commit your changes: git commit -m "Add feature description".
 
----
+Push to the branch: git push origin feature/your-feature.
 
-## 📊 Test Reporting
+Create a pull request.
 
-* ImpactRun integrates with **Jest HTML Reporter**.
-* After running tests, open:
-
-```text
-reports/test-report.html
-```
-
-* Sample view:
-
-```
-ImpactRun Test Report
---------------------
-✅ Passed: math.test.js
-✅ Passed: math.spec.js
-⏭️ Skipped: 0 tests
-Time saved: 60%
-```
-
----
-
-## 🛠️ Roadmap
-
-* Auto-discover test mappings (no manual config)
-* Coverage-based test selection
-* Parallel execution of impacted tests
-* HTML/Markdown test reports
-* GitHub Actions integration example
-
----
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-Please follow standard GitHub flow: fork → branch → PR → review → merge.
-
----
-
-## 📄 License
-
-ISC
-
-```
+License
+This project is licensed under the MIT License.

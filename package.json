@@ -1,39 +1,28 @@
 {
-  "name": "computer-language-folders",
+  "name": "impactrun",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "ImpactRun - Run only impacted tests efficiently",
+  "main": "src/cli.js",
   "scripts": {
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:report": "jest --coverage"
+    "test:report": "jest --coverage",
+    "impactrun": "node src/cli.js run"
   },
-  "keywords": [],
+  "keywords": [
+    "testing",
+    "impact-run",
+    "jest",
+    "watcher",
+    "cli"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chokidar": "^3.6.0",
     "commander": "^14.0.0"
   },
   "devDependencies": {
     "jest": "^30.1.3",
     "jest-html-reporter": "^4.3.0"
-  },
-  "jest": {
-    "reporters": [
-      "default",
-      [
-        "jest-html-reporter",
-        {
-          "pageTitle": "ImpactRun Test Report",
-          "outputPath": "reports/test-report.html",
-          "includeFailureMsg": true,
-          "includeSuiteFailure": true
-        }
-      ]
-    ],
-    "testMatch": [
-      "**/tests/**/*.(test|spec|unit).js"
-    ]
   }
 }
