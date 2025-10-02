@@ -2,23 +2,9 @@
 
  Intelligent Test RunnerAbsolutely! I’ll draft a **professional, FANG-level README** that is clear, structured, and industry-ready. It will cover everything we implemented: arrays, math, string utilities, testing, linting, and coverage. Here's a complete example:
 
-````markdown
-# ImpactRun
-
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/ImpactRun/actions)
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/yourusername/ImpactRun)
-
-Absolutely! I’ll draft a **professional, FANG-level README** that is clear, structured, and industry-ready. It will cover everything we implemented: arrays, math, string utilities, testing, linting, and coverage. Here's a complete example:
-
-````markdown
-# ImpactRun
-
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/ImpactRun/actions)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/yourusername/ImpactRun)
-
----
 
 ## Table of Contents
 
