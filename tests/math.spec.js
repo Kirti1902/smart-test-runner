@@ -1,4 +1,4 @@
-const {add,sub} = require("../src/math");
+const {add,sub} = require("../src/utils/math.js");
 
 test("add numbers",()=>{
     expect(add(2,3)).toBe(5);

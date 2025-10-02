@@ -2,12 +2,14 @@
   "name": "impactrun",
   "version": "1.0.0",
   "description": "ImpactRun - Run only impacted tests efficiently",
-  "main": "src/cli.js",
+  "main": "src/cli.cjs",
+  "type": "module",
   "scripts": {
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:report": "jest --coverage",
-    "impactrun": "node src/cli.js run"
+    "impactrun": "node src/cli.cjs",
+    "testlint": "npm run impactrun ; npm run lint"
   },
   "keywords": [
     "testing",
@@ -19,10 +21,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "commander": "^14.0.0"
+    "chokidar": "^4.0.3",
+    "commander": "^14.0.0",
+    "eslint": "^8.44.0"
   },
   "devDependencies": {
-    "jest": "^30.1.3",
+    "@eslint/eslintrc": "^3.3.1",
+    "jest": "^30.2.0",
     "jest-html-reporter": "^4.3.0"
   }
 }
