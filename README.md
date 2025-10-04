@@ -1,10 +1,19 @@
-# ⚡ ImpactRun -
+Perfect! Since your current README already has the core structure, we just need to **update it with all the new changes and improvements we implemented**, like:
 
- Intelligent Test RunnerAbsolutely! I’ll draft a **professional, FANG-level README** that is clear, structured, and industry-ready. It will cover everything we implemented: arrays, math, string utilities, testing, linting, and coverage. Here's a complete example:
+1. Updated project structure reflecting `.cjs` files (`cli.cjs`, `runner.cjs`, `config.cjs`, `utils/`, `watchers/`)
+2. Husky + lint-staged pre-commit hook mention
+3. Coverage and reports folders updated (`coverage/` + `reports/test-report.html`)
+4. Updated commands for running tests, lint, and combined test-lint workflow
+5. CLI examples for running specific tests or functions
+
+Here’s the **updated README** with all these additions:
+
+````markdown
+# ⚡ ImpactRun - Intelligent Test Runner
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/ImpactRun/actions)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/yourusername/ImpactRun)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](./coverage/index.html)
 
 ## Table of Contents
 
@@ -13,12 +22,11 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Available Scripts](#available-scripts)
+- [Project Structure](#project-structure)
 - [API / Function Reference](#api--function-reference)
-  - [Array Utilities](#array-utilities)
-  - [Math Utilities](#math-utilities)
-  - [String Utilities](#string-utilities)
 - [Testing & Coverage](#testing--coverage)
 - [Linting & Code Quality](#linting--code-quality)
+- [Pre-commit Hooks](#pre-commit-hooks)
 - [Contribution](#contribution)
 - [License](#license)
 
@@ -27,9 +35,9 @@
 ## Project Overview
 
 **ImpactRun** is a lightweight, high-performance JavaScript utility library providing **array, math, and string helper functions**.  
-It is designed to simplify common programming tasks with **robust, well-tested functions**.  
+It simplifies common programming tasks while following **best practices in testing, linting, and maintainability**.
 
-This project demonstrates **best practices in code quality, testing, and maintainability**, ensuring production-level standards.
+This project demonstrates **production-ready, FAANG-level engineering standards**.
 
 ---
 
@@ -40,7 +48,8 @@ This project demonstrates **best practices in code quality, testing, and maintai
 - ✅ String operations: `toUpper`, `toLower`, `length`, `reverse`, `capitalize`, `contains`, `replaceAll`, `trim`  
 - ✅ Full **unit test coverage** with Jest  
 - ✅ **Linting & code formatting** using ESLint  
-- ✅ 100% code coverage  
+- ✅ **Pre-commit hooks** using Husky + lint-staged  
+- ✅ 100% code coverage with HTML reports  
 
 ---
 
@@ -61,8 +70,6 @@ npm install
 
 ## Usage
 
-All utilities are exposed via `src/cli.cjs` and can be used programmatically or tested via the command line.
-
 ### Run All Tests
 
 ```bash
@@ -81,6 +88,12 @@ npm run lint
 npm run testlint
 ```
 
+### Run Coverage Report
+
+```bash
+npm run coverage
+```
+
 ### Run Specific Tests
 
 ```bash
@@ -95,49 +108,75 @@ npm run impactrun -- --name capitalize
 
 ## Available Scripts
 
-| Script              | Description                    |
-| ------------------- | ------------------------------ |
-| `npm run impactrun` | Runs all Jest test suites      |
-| `npm run lint`      | Runs ESLint with auto-fix      |
-| `npm run testlint`  | Runs tests followed by linting |
-| `npm run coverage`  | Generates code coverage report |
+| Script              | Description                         |
+| ------------------- | ----------------------------------- |
+| `npm run impactrun` | Runs all Jest test suites           |
+| `npm run lint`      | Runs ESLint with auto-fix           |
+| `npm run testlint`  | Runs tests followed by linting      |
+| `npm run coverage`  | Generates code coverage report      |
+| `npm run prepare`   | Prepares Husky hooks for pre-commit |
+
+---
+
+## Project Structure
+
+```
+ImpactRun/
+├── src/
+│   ├── cli.cjs                # CLI entry point
+│   ├── runner.cjs             # Test runner
+│   ├── config/config.cjs      # Config files
+│   ├── utils/                 # Utility functions
+│   │   ├── array.js
+│   │   ├── math.js
+│   │   └── string.js
+│   └── watchers/watch.cjs     # File watcher
+├── tests/                     # Unit & integration tests
+├── coverage/                  # Coverage reports
+├── reports/                   # Jest HTML reports
+├── .github/workflows/         # GitHub Actions CI
+├── .husky/                    # Git hooks
+├── package.json
+├── jest.config.cjs
+└── README.md
+```
 
 ---
 
 ## API / Function Reference
 
-### Array Utilities (`src/array.js`)
+### Array Utilities (`src/utils/array.js`)
 
-| Function               | Description                                 |
-| ---------------------- | ------------------------------------------- |
-| `sum(arr)`             | Returns the sum of all elements in an array |
-| `average(arr)`         | Returns the average value                   |
-| `max(arr)`             | Returns the maximum value                   |
-| `min(arr)`             | Returns the minimum value                   |
-| `unique(arr)`          | Returns an array with unique elements only  |
-| `flatten(arr)`         | Flattens nested arrays                      |
-| `contains(arr, value)` | Checks if an array contains a value         |
+| Function               | Description                             |
+| ---------------------- | --------------------------------------- |
+| `sum(arr)`             | Returns sum of all elements in an array |
+| `average(arr)`         | Returns average value                   |
+| `max(arr)`             | Returns maximum value                   |
+| `min(arr)`             | Returns minimum value                   |
+| `unique(arr)`          | Returns an array with unique elements   |
+| `flatten(arr)`         | Flattens nested arrays                  |
+| `contains(arr, value)` | Checks if array contains a value        |
 
 ### Math Utilities (`src/utils/math.js`)
 
-| Function       | Description                                                     |
-| -------------- | --------------------------------------------------------------- |
-| `factorial(n)` | Returns the factorial of `n`. Throws error for negative numbers |
-| `isPrime(n)`   | Returns true if `n` is prime                                    |
-| `gcd(a, b)`    | Returns greatest common divisor of `a` and `b`                  |
-| `lcm(a, b)`    | Returns least common multiple of `a` and `b`                    |
-| `mod(a, b)`    | Returns `a % b`. Throws error if `b = 0`                        |
-| `power(a, b)`  | Returns `a` raised to the power `b`                             |
+| Function       | Description                         |
+| -------------- | ----------------------------------- |
+| `factorial(n)` | Returns factorial of `n`            |
+| `isPrime(n)`   | Returns true if `n` is prime        |
+| `gcd(a, b)`    | Greatest common divisor             |
+| `lcm(a, b)`    | Least common multiple               |
+| `mod(a, b)`    | Returns `a % b`                     |
+| `power(a, b)`  | Returns `a` raised to the power `b` |
 
-### String Utilities (`src/string.js`)
+### String Utilities (`src/utils/string.js`)
 
 | Function                           | Description                                         |
 | ---------------------------------- | --------------------------------------------------- |
 | `toUpper(str)`                     | Converts string to uppercase                        |
 | `toLower(str)`                     | Converts string to lowercase                        |
-| `length(str)`                      | Returns length of the string                        |
+| `length(str)`                      | Returns string length                               |
 | `reverse(str)`                     | Reverses the string                                 |
-| `capitalize(str)`                  | Capitalizes the first letter of each word           |
+| `capitalize(str)`                  | Capitalizes first letter of each word               |
 | `contains(str, sub)`               | Checks if string contains a substring               |
 | `replaceAll(str, search, replace)` | Replaces all occurrences of `search` with `replace` |
 | `trim(str)`                        | Removes whitespace from both ends                   |
@@ -146,21 +185,16 @@ npm run impactrun -- --name capitalize
 
 ## Testing & Coverage
 
-* Tests implemented using **Jest**
-* Full **100% test coverage**
-* Commands:
-
-```bash
-npm run impactrun   # Run all tests
-npm run coverage    # View coverage report
-```
+* **Jest** used for unit tests
+* 100% test coverage
+* Coverage HTML reports available in `/coverage` and Jest HTML reports in `/reports`
 
 ---
 
 ## Linting & Code Quality
 
-* Uses **ESLint** for static analysis
-* Auto-fixable via:
+* ESLint static analysis
+* Auto-fix with:
 
 ```bash
 npm run lint
@@ -168,36 +202,35 @@ npm run lint
 
 ---
 
+## Pre-commit Hooks
+
+* Husky + lint-staged ensure code quality before committing:
+
+```bash
+# Automatically runs ESLint on staged files
+npx lint-staged
+```
+
+---
+
 ## Contribution
 
-We welcome contributions!
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/xyz`)
-3. Commit changes (`git commit -m "Add feature"`)
-4. Push (`git push origin feature/xyz`)
-5. Open a Pull Request
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/awesome-feature`)
+3. Commit changes (`git commit -m "feat: add awesome feature"`)
+4. Push to branch (`git push origin feature/awesome-feature`)
+5. Open a PR 🚀
 
 ---
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE)
 
 ---
 
 *ImpactRun – Clean, Tested, and Production-Ready JavaScript Utilities.*
 
 ```
-
----
-
-✅ **What this README includes:**  
-
-- Project overview, features, and professional badges  
-- Step-by-step installation and usage  
-- Industry-level documentation of scripts & API  
-- Detailed testing, linting, and coverage instructions  
-- Contribution and license sections  
 
 ---
