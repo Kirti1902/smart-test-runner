@@ -1,14 +1,3 @@
-Perfect! Since your current README already has the core structure, we just need to **update it with all the new changes and improvements we implemented**, like:
-
-1. Updated project structure reflecting `.cjs` files (`cli.cjs`, `runner.cjs`, `config.cjs`, `utils/`, `watchers/`)
-2. Husky + lint-staged pre-commit hook mention
-3. Coverage and reports folders updated (`coverage/` + `reports/test-report.html`)
-4. Updated commands for running tests, lint, and combined test-lint workflow
-5. CLI examples for running specific tests or functions
-
-Here’s the **updated README** with all these additions:
-
-````markdown
 # ⚡ ImpactRun - Intelligent Test Runner
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
